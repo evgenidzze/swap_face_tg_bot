@@ -1,5 +1,5 @@
 FROM python:3.12.3
-
+RUN apt-get update && apt-get install -y libgl1 && apt-get clean
 WORKDIR /app
 
 # Copy the requirements file and install dependencies
