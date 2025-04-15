@@ -1,5 +1,5 @@
 services:
-  bot:
+  bot-swap:
     build: .
     container_name: bot
     env_file:
