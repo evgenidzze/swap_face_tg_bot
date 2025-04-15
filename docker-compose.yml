@@ -1,7 +1,7 @@
 services:
   bot-swap:
     build: .
-    container_name: bot
+    container_name: bot-swap
     env_file:
       - .env
     restart: always
