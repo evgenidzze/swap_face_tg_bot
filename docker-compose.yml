@@ -6,10 +6,4 @@ services:
       - .env
     restart: always
     environment:
-      - ONNX_PROVIDER=CUDAExecutionProvider
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - capabilities: [gpu]
-    runtime: nvidia
+      - ONNX_PROVIDER=CPUExecutionProvider
