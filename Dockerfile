@@ -1,13 +1,23 @@
 FROM python:3.12.3
 
+# Встановлення необхідних бібліотек для OpenCV
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    libsm6 \
+    libxext6 \
+    libgl1 \
+    libglib2.0-0 \
+ && rm -rf /var/lib/apt/lists/*
+
+# Встановлюємо робочу директорію
 WORKDIR /app
 
-# Copy the requirements file and install dependencies
-COPY requirements.txt requirements.txt
-RUN pip3 install -r requirements.txt
+# Копіюємо requirements і встановлюємо залежності
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the application code
+# Копіюємо увесь код проєкту
 COPY . .
 
-# Command to run the application
+# Запускаємо додаток
 CMD ["python3", "main.py"]
