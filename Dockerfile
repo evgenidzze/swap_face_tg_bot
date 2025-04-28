@@ -20,4 +20,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Запускаємо додаток
-CMD ["python3", "main.py"]
+CMD ["python3", "start_bot.py"]
