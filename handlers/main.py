@@ -20,6 +20,7 @@ class FSMClient(StatesGroup):
     slot_name = State()
 
 
+@router.message(CommandStart())
 @router.message(CommandStart(deep_link=True))
 async def start_handler(message: types.Message, command: CommandObject, state: FSMContext):
     # Check for deep link parameter
