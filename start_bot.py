@@ -8,9 +8,10 @@ import logging
 import sys
 
 from aiogram import Bot, Dispatcher
+from aiogram.client.default import DefaultBotProperties
 from dotenv import load_dotenv
 
-from aiogram.types import BufferedInputFile
+from aiogram.types import BufferedInputFile, BotCommand
 from insightface.app import FaceAnalysis
 
 
@@ -25,9 +26,20 @@ class FaceAnalysis2(FaceAnalysis):
 def register_routers(dp):
     from handlers import main
     from handlers import bonus
+    from handlers import help
 
     dp.include_router(main.router)
     dp.include_router(bonus.router)
+    dp.include_router(help.router)
+
+
+async def set_bot_commands(bot: Bot):
+    commands = [
+        BotCommand(command="bonus", description="ваши бонусы собраны здесь"),
+        BotCommand(command="generate", description="создайте другие образы"),
+        BotCommand(command="help", description="нужна помощь? - напишите"),
+    ]
+    await bot.set_my_commands(commands)
 
 
 load_dotenv()
@@ -42,7 +54,6 @@ swapper = insightface.model_zoo.get_model('inswapper_128.onnx', download=True, d
 
 hero_faces = {}
 
-# Load face embeddings for each hero image
 for hero_file in os.listdir('static/images'):
     hero_path = os.path.join('static/images', hero_file)
     hero_image = cv2.imread(hero_path)
@@ -53,7 +64,7 @@ for hero_file in os.listdir('static/images'):
         hero_faces[hero_name] = faces[0]
     else:
         logging.warning(f"No face detected in {hero_file}")
-bot = Bot(token=TOKEN_API)
+bot = Bot(token=TOKEN_API, default=DefaultBotProperties(parse_mode='html'))
 dp = Dispatcher()
 with open('static/loading.gif', 'rb') as gif_file:
     loading_gif_bytes = gif_file.read()
@@ -61,6 +72,7 @@ with open('static/loading.gif', 'rb') as gif_file:
 
 
 async def start():
+    await set_bot_commands(bot)
     register_routers(dp)
     await dp.start_polling(bot)
 
