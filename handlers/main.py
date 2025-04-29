@@ -23,7 +23,7 @@ class FSMClient(StatesGroup):
 @router.message(CommandStart())
 @router.message(CommandStart(deep_link=True))
 async def start_handler(message: types.Message, command: CommandObject, state: FSMContext):
-    # Check for deep link parameter
+    await state.clear()
     start_param = command.args
     if start_param:
         if start_param == 'help':
@@ -173,6 +173,7 @@ async def get_free_spins_handler(callback: types.CallbackQuery):
 @router.callback_query(F.data == 'get_bonus')
 @router.message(Command('generate'))
 async def get_bonus_handler(event: Union[types.CallbackQuery, types.Message], state: FSMContext):
+    await state.clear()
     kb = await generate_slots_kb()
     await state.set_state(FSMClient.slot_name)
     user_id = event.from_user.id
