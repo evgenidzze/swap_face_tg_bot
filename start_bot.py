@@ -27,9 +27,8 @@ def register_routers(dp):
     from handlers import main
     from handlers import bonus
     from handlers import help
-
-    dp.include_router(main.router)
     dp.include_router(bonus.router)
+    dp.include_router(main.router)
     dp.include_router(help.router)
 
 

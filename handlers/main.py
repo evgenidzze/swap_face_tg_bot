@@ -54,24 +54,24 @@ async def slot_handler(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
     await state.update_data(slot_name=callback.data)
     await state.set_state(FSMClient.user_photo)
-    photos = await bot.get_user_profile_photos(user_id=callback.from_user.id)
-    if photos.total_count:
-        input_file, slot_name = await get_swapped_photo(photos.photos[0][-1].file_id, callback.data)
-        if input_file:
-            await callback.message.answer_photo(photo=input_file,
-                                                caption=f"🔥 БУМ! А вот и ты! Узнаешь?! - главный герой игры {slot_name} Выглядишь потрясающе!")
-        else:
-            await callback.message.answer("Не удалось обработать вашу аватарку, попробуйте загрузить фото в сообщении")
-            return
-    else:
-        await callback.message.answer(
-            f"🔥 Отличный выбор!\n\n"
-            f"Теперь загрузите фото, чтобы примерить образ из слота {callback.data.replace('_', ' ').title()}\n\n")
+
+    await callback.message.answer(
+        f"🔥 Отличный выбор!\n\n"
+        f"Теперь загрузите фото, чтобы примерить образ из слота {callback.data.replace('_', ' ').title()}\n\n")
 
 
 @router.message(FSMClient.user_photo)
 async def user_photo_handler(message: types.Message, state: FSMContext):
-    await message.answer_animation(animation=loading_gif_buffered, caption="Загружаю твою аватарку...")
+    if not message.photo:
+        await message.answer("❗ <b>Пожалуйста, загрузите фото с лицом</b>")
+        return
+    await bot.send_animation(chat_id=message.from_user.id,
+                             animation=loading_gif_buffered,
+                             caption=(
+                                 "⚙️ <b>Загружаем твое альтер-эго...</b>\n\n"
+                                 "⏳ <i>Это займет несколько секунд. В это время твоя реальность переплетается с азартом...</i>"
+                             )
+                             )
     data = await state.get_data()
     slot_name = data.get('slot_name')
     input_file, slot_name = await get_swapped_photo(message.photo[-1].file_id, slot_name)
@@ -80,7 +80,9 @@ async def user_photo_handler(message: types.Message, state: FSMContext):
         kb.button(text='ЗАБРАТЬ ФРИСПИНЫ', callback_data='get_free_spins')
         kb.button(text='ПОПРОБОВАТЬ ЕЩЕ', callback_data='get_bonus')
         await message.answer_photo(photo=input_file,
-                                   caption=f"🔥 БУМ! А вот и ты! Узнаешь?! - главный герой игры {slot_name.replace('_', ' ').title()} Выглядишь потрясающе!")
+                                   caption=f"🔥 <b>БУМ! А вот и ты!\n\n</b>"
+                                           f"<i>Узнаешь?! - главный герой игры {slot_name.replace('_', ' ').title()}\n\n</i>"
+                                           f"<b>Выглядишь потрясающе!</b>")
         await message.answer("🎯 И по традиции, дарим бонус для этой игры\n\n"
                              f"10 бесплатных вращений в игре {slot_name.replace('_', ' ').title()}\n\n"
                              "👇 Жми и забирай", reply_markup=kb.as_markup())
