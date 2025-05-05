@@ -2,13 +2,14 @@ from random import random, choice
 
 import cv2
 import numpy as np
-from aiogram.types import BufferedInputFile, InlineKeyboardButton
-from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from insightface.app import FaceAnalysis
 
 from io import BytesIO
 
-from start_bot import swapper, app, bot, hero_faces
+from create_bot import bot
+from start_bot import swapper, app, hero_faces
+
 
 
 def analyze_faces(face_analysis: FaceAnalysis, img_data: np.ndarray, det_size=(640, 640)):
@@ -24,8 +25,11 @@ def analyze_faces(face_analysis: FaceAnalysis, img_data: np.ndarray, det_size=(6
 
 
 async def get_swapped_photo(file_id, hero_name):
+    # In aiogram 2, we use download_file_by_id instead of download
+    file_info = await bot.get_file(file_id)
+    file_path = file_info.file_path
     photo_bytes = BytesIO()
-    await bot.download(file=file_id, destination=photo_bytes)
+    await bot.download_file(file_path, destination=photo_bytes)
     photo_bytes.seek(0)
 
     np_arr = np.frombuffer(photo_bytes.read(), np.uint8)
@@ -48,17 +52,23 @@ async def get_swapped_photo(file_id, hero_name):
     _, buffer = cv2.imencode('.jpg', swapped)
     image_io = BytesIO(buffer.tobytes())
     image_io.seek(0)
-    input_file = BufferedInputFile(file=image_io.getvalue(), filename="swapped.jpg")
+
+    # In aiogram 2, we don't need BufferedInputFile, we can use BytesIO directly
+    # when calling answer_photo
     hero_name = hero_name.replace('_', ' ').title()
-    return input_file, hero_name
+    return image_io, hero_name
 
 
 async def generate_slots_kb():
-    kb = InlineKeyboardBuilder()
+    # In aiogram 2, we create keyboard differently
+    kb = InlineKeyboardMarkup(row_width=1)
     for hero_name in hero_faces.keys():
-        kb.button(text=hero_name.replace('_', ' ').title(), callback_data=f"{hero_name}")
-    kb.adjust(1)
-    return kb.as_markup()
+        button = InlineKeyboardButton(
+            text=hero_name.replace('_', ' ').title(),
+            callback_data=f"{hero_name}"
+        )
+        kb.add(button)
+    return kb
 
 
 async def random_text(slot_name):

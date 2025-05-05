@@ -1,10 +1,7 @@
-from aiogram import Router, types
-from aiogram.filters import Command
+from aiogram import types, Dispatcher
 
-router = Router()
+# In aiogram 2, we don't use Router but register handlers directly to Dispatcher
 
-
-@router.message(Command('help'))
 async def help_handler(message: types.Message):
     text = """📩 Нужна помощь? Мы рядом
 
@@ -20,3 +17,6 @@ async def help_handler(message: types.Message):
 
 Или выберите нужный раздел из меню ниже"""
     await message.answer(text)
+
+def register_help_handlers(dp: Dispatcher):
+    dp.register_message_handler(help_handler, commands=['help'])

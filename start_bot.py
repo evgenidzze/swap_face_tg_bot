@@ -1,18 +1,15 @@
-import asyncio
 import os
-
 import cv2
 import insightface
 import logging
-
 import sys
 
-from aiogram import Bot, Dispatcher
-from aiogram.client.default import DefaultBotProperties
-from dotenv import load_dotenv
-
-from aiogram.types import BufferedInputFile, BotCommand
+from aiogram import Bot, executor
+from aiogram.types import BotCommand
 from insightface.app import FaceAnalysis
+
+from create_bot import dp, scheduler
+from utils.db_manage import on_startup_db
 
 
 class FaceAnalysis2(FaceAnalysis):
@@ -23,13 +20,18 @@ class FaceAnalysis2(FaceAnalysis):
         return super().get(img, max_num)
 
 
-def register_routers(dp):
+def register_handlers(dp):
+    """Register all handlers for the dispatcher"""
     from handlers import main
     from handlers import bonus
     from handlers import help
-    dp.include_router(bonus.router)
-    dp.include_router(main.router)
-    dp.include_router(help.router)
+    from handlers import main_admin
+
+    # Register handlers from each module
+    main.register_handlers(dp)
+    bonus.register_bonus_handlers(dp)
+    help.register_help_handlers(dp)
+    main_admin.register_admin_handlers(dp)
 
 
 async def set_bot_commands(bot: Bot):
@@ -41,16 +43,23 @@ async def set_bot_commands(bot: Bot):
     await bot.set_my_commands(commands)
 
 
-load_dotenv()
+async def on_startup(dp):
+    """Actions performed on startup"""
+    scheduler.start()
+    await set_bot_commands(dp.bot)
+    await on_startup_db(dp)
 
-TOKEN_API = os.environ.get('BOT_TOKEN')
+
+
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
+# Initialize face analysis
 app = FaceAnalysis2(name='buffalo_l')
 app.prepare(ctx_id=-1)
-swapper = insightface.model_zoo.get_model('inswapper_128.onnx', download=True, download_zip=True)
+swapper = insightface.model_zoo.get_model('inswapper_128.onnx', download_zip=True)
 
+# Dictionary to store hero faces
 hero_faces = {}
 
 for hero_file in os.listdir('static/images'):
@@ -63,18 +72,8 @@ for hero_file in os.listdir('static/images'):
         hero_faces[hero_name] = faces[0]
     else:
         logging.warning(f"No face detected in {hero_file}")
-bot = Bot(token=TOKEN_API, default=DefaultBotProperties(parse_mode='html'))
-dp = Dispatcher()
-with open('static/loading.gif', 'rb') as gif_file:
-    loading_gif_bytes = gif_file.read()
-    loading_gif_buffered = BufferedInputFile(loading_gif_bytes, filename='loading.gif')
-
-
-async def start():
-    await set_bot_commands(bot)
-    register_routers(dp)
-    await dp.start_polling(bot)
 
 
 if __name__ == "__main__":
-    asyncio.run(start())
+    register_handlers(dp)
+    executor.start_polling(dp, on_startup=on_startup, skip_updates=True)

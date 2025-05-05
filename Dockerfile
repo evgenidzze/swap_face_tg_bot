@@ -1,12 +1,16 @@
-FROM python:3.12.3
+FROM python:3.10.12
 
-# Встановлення необхідних бібліотек для OpenCV
+# Встановлення системних бібліотек, потрібних для OpenCV і збірки aiohttp
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     libsm6 \
     libxext6 \
     libgl1 \
     libglib2.0-0 \
+    build-essential \
+    python3-dev \
+    libssl-dev \
+    libffi-dev \
  && rm -rf /var/lib/apt/lists/*
 
 # Встановлюємо робочу директорію
