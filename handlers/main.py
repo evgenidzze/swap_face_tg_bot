@@ -8,6 +8,7 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, InputFile
 from aiogram.utils.deep_linking import get_start_link
 from aiogram.utils.exceptions import BadRequest
+from aiogram.dispatcher.filters import Text
 
 from keyboards.keyboards import use_avatar_kb
 from create_bot import bot
@@ -237,11 +238,11 @@ async def send_delayed_message(user_id, delay, message_text, kb):
 
 def register_handlers(dp: Dispatcher):
     """Register all handlers to dispatcher"""
-    dp.register_message_handler(start_handler, commands=['start'])
+    dp.register_message_handler(start_handler, commands=['start'], state='*')
+    dp.register_message_handler(get_bonus_handler, commands=['generate'], state='*')
     dp.register_callback_query_handler(slot_handler, state=FSMClient.slot_name)
     dp.register_message_handler(user_photo_handler, content_types=['photo'], state=FSMClient.user_photo)
-    dp.register_callback_query_handler(use_avatar_handler, lambda c: c.data == 'use_avatar')
+    dp.register_callback_query_handler(use_avatar_handler, Text(equals='moderator'))
     dp.register_message_handler(use_avatar_handler, content_types=['photo'], state='*')
-    dp.register_callback_query_handler(get_free_spins_handler, lambda c: c.data == 'get_free_spins')
-    dp.register_callback_query_handler(get_bonus_handler, lambda c: c.data == 'get_bonus')
-    dp.register_message_handler(get_bonus_handler, commands=['generate'])
+    dp.register_callback_query_handler(get_free_spins_handler, Text('get_free_spins'))
+    dp.register_callback_query_handler(get_bonus_handler,  Text('get_bonus'))
