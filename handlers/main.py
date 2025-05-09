@@ -242,7 +242,7 @@ def register_handlers(dp: Dispatcher):
     dp.register_message_handler(get_bonus_handler, commands=['generate'], state='*')
     dp.register_callback_query_handler(slot_handler, state=FSMClient.slot_name)
     dp.register_message_handler(user_photo_handler, content_types=['photo'], state=FSMClient.user_photo)
-    dp.register_callback_query_handler(use_avatar_handler, Text(equals='moderator'))
+    dp.register_callback_query_handler(use_avatar_handler, Text(equals='use_avatar'))
     dp.register_message_handler(use_avatar_handler, content_types=['photo'], state='*')
     dp.register_callback_query_handler(get_free_spins_handler, Text('get_free_spins'))
     dp.register_callback_query_handler(get_bonus_handler,  Text('get_bonus'))
